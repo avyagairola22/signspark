@@ -11,7 +11,7 @@ import { todayPanel, bindToday, goalRing } from './views/today.js';
 import { applySettings } from './ui/theme.js';
 import { handSVG } from './render/hands.js';
 import { icon } from './ui/icons.js';
-import { toast } from './ui/dom.js';
+import { toast, syncLayers } from './ui/dom.js';
 
 const ROUTES = {
   learn: { label: 'Learn', icon: 'learn', render: renderLearn },
@@ -94,6 +94,7 @@ function render(name, { keepScroll = false } = {}) {
   view.replaceChildren(page);
   ROUTES[name].render(page, { refresh, go, firstVisit: visits === 1 });
   paintChrome();
+  syncLayers(); // safety net: the page is only locked while a lesson or dialog is open
   document.title = name === 'learn' ? 'SignSpark' : `${ROUTES[name].label} · SignSpark`;
   if (keepScroll) window.scrollTo(0, y);
   else if (visits > 1) window.scrollTo(0, 0);

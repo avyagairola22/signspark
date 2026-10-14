@@ -72,7 +72,14 @@ export function renderDictionary(page) {
   const grid = page.querySelector('.dict-grid');
   const count = page.querySelector('.dict-count');
   const paint = () => {
-    const list = SIGNS.filter(matches);
+    // Best matches first: the exact name, then names that start with the
+    // search, then names that contain it, then matches in the description.
+    const q = filter.q.trim().toLowerCase();
+    const rank = (s) => {
+      const name = s.label.toLowerCase();
+      return !q || name === q ? 0 : name.startsWith(q) ? 1 : name.includes(q) ? 2 : 3;
+    };
+    const list = SIGNS.filter(matches).sort((a, b) => rank(a) - rank(b));
     const learned = store.state.learned;
     count.textContent = `${list.length} sign${list.length === 1 ? '' : 's'}`;
     grid.innerHTML = list.length

@@ -256,7 +256,7 @@ export const WORDS = [
   W({ id: 'again', label: 'Again', cat: 'signing', hand: 'BENTB', base: 'B', loc: 'neutral', move: { type: 'arc', dir: 150 }, moveText: 'arc over and land in the other palm', palm: 'base hand facing up',
     how: 'Hold your other palm up. Bring your bent hand up and flip it over so the fingertips land in your palm.',
     short: 'Bent hand arcs over and lands in the other palm', cue: 'Arc into the palm', example: { gloss: 'AGAIN, PLEASE', en: 'Can you repeat that?' } }),
-  W({ id: 'slow', label: 'Slow', cat: 'signing', hand: 'B', base: 'B', loc: 'neutral', move: 'slide', moveText: 'slide slowly up the back of the other hand', palm: 'facing down',
+  W({ id: 'slow', label: 'Slow', cat: 'signing', hand: 'B', base: 'B', loc: 'neutral', move: { type: 'out', dir: 60 }, moveText: 'slide slowly up the back of the other hand', palm: 'facing down',
     how: 'Slowly slide your dominant hand up the back of your other hand, from the fingertips toward the wrist.',
     short: 'Hand slides slowly up the back of the other hand', cue: 'Slow slide up the hand', example: { gloss: 'PLEASE SIGN SLOW', en: 'Please sign slowly.' } }),
 ];

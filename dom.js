@@ -53,17 +53,18 @@ export function openSheet({ title, body, actions = [], onClose, className = '' }
     ${actions.length ? `<div class="sheet-actions">${actions.map((a, i) => `<button type="button" class="btn ${a.kind || ''}" data-action="${i}">${esc(a.label)}</button>`).join('')}</div>` : ''}
   </div>`;
   document.body.appendChild(wrap);
-  // Block everything behind the dialog (the page, or a lesson in progress).
-  const behind = [...document.querySelectorAll('.app, .tabbar, .player')].map((el) => [el, el.inert]);
-  behind.forEach(([el]) => { el.inert = true; });
+  syncLayers();
   let closed = false;
   const close = () => {
     if (closed) return;
     closed = true;
-    behind.forEach(([el, was]) => { el.inert = was; });
     wrap.remove();
     document.removeEventListener('keydown', onKey, true);
-    before?.focus?.();
+    syncLayers();
+    // Return focus to where it was, unless that spot is gone (for example,
+    // the lesson that was just quit). Then focus the page instead.
+    if (before?.isConnected && !before.closest('[inert]')) before.focus?.({ preventScroll: true });
+    else document.getElementById('view')?.focus({ preventScroll: true });
     onClose?.();
   };
   const onKey = (e) => {
@@ -148,13 +149,28 @@ export function fmtTime(seconds) {
 }
 
 /**
- * While a full-screen session is open, make the page behind it inert so
- * keyboard focus and clicks cannot reach it.
+ * Only the top layer on screen can be clicked or focused: a dialog first,
+ * then a full-screen lesson or game, then the page itself. Everything under
+ * the top layer is made inert.
+ *
+ * This is worked out from what is actually on screen every time it runs
+ * (never from a saved "before" state), so the page cannot get stuck locked.
+ * Call it whenever a dialog, lesson or game opens or closes.
  */
-export function setBackgroundInert(on) {
+export function syncLayers() {
+  const sheets = [...document.querySelectorAll('.sheet-wrap')];
+  const players = [...document.querySelectorAll('.player')];
   document.querySelectorAll('.app, .tabbar').forEach((el) => {
-    el.inert = on;
+    el.inert = sheets.length > 0 || players.length > 0;
   });
+  players.forEach((el) => {
+    el.inert = sheets.length > 0;
+  });
+  sheets.forEach((el, i) => {
+    el.inert = i < sheets.length - 1; // only the newest dialog is active
+  });
+  // Stop the page behind a lesson from scrolling, only while one is open.
+  document.documentElement.classList.toggle('player-open', players.length > 0);
 }
 
 /** True on devices with a precise pointer (so auto-focusing a text box will not pop up a phone keyboard). */

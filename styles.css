@@ -454,6 +454,7 @@ input[type="range"] { accent-color: var(--brand); }
 }
 .node-start {
   position: absolute; bottom: calc(100% + 14px); left: 50%; translate: -50% 0; z-index: 2;
+  pointer-events: none; /* a label only: taps pass through to whatever is under it */
   padding: 7px 12px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink);
   font: 500 0.78rem var(--f-gloss); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
   animation: bob 1.6s ease-in-out infinite;
@@ -470,8 +471,8 @@ input[type="range"] { accent-color: var(--brand); }
   display: grid; gap: 10px; width: min(300px, calc(100vw - 48px)); padding: 16px;
   border: 2px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow);
   text-align: left; animation: rise 0.18s ease-out;
-  scroll-margin: 84px 0 104px;
 }
+.node-pop.up { top: auto; bottom: calc(100% + 16px); }
 .pop-signs { display: flex; flex-wrap: wrap; gap: 6px; }
 .pop-lock { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.9rem; }
 .path-end { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 0.9rem; text-align: center; }

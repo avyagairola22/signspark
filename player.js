@@ -7,7 +7,7 @@ import { reshuffle } from '../engine/lesson.js';
 import { recordAnswer, streakNow } from '../core/progress.js';
 import { handSVG } from '../render/hands.js';
 import { icon } from '../ui/icons.js';
-import { esc, confetti, vibrate, openSheet, fmtTime, setBackgroundInert } from '../ui/dom.js';
+import { esc, confetti, vibrate, openSheet, fmtTime, syncLayers } from '../ui/dom.js';
 
 const PRAISE = ['Nice!', 'Great job!', 'You got it!', 'Correct!', 'Well done!', 'Excellent!'];
 
@@ -35,8 +35,7 @@ export function playSession({ title, exercises, doneTitle = 'Lesson complete!', 
     <div class="pl-body"><div class="pl-stage"></div></div>
     <footer class="pl-foot"><div class="pl-foot-in"><div class="pl-msg" aria-live="assertive"></div><div class="pl-actions"></div></div></footer>`;
   document.body.appendChild(root);
-  document.documentElement.classList.add('player-open');
-  setBackgroundInert(true);
+  syncLayers();
 
   const body = root.querySelector('.pl-body');
   const stage = root.querySelector('.pl-stage');
@@ -168,12 +167,14 @@ export function playSession({ title, exercises, doneTitle = 'Lesson complete!', 
     confetti();
   }
 
+  let closed = false;
   function close() {
+    if (closed) return; // a double tap on Continue or Quit only closes once
+    closed = true;
     handler?.cleanup?.();
     document.removeEventListener('keydown', onKey);
     root.remove();
-    document.documentElement.classList.remove('player-open');
-    setBackgroundInert(false);
+    syncLayers();
     onExit?.();
   }
 

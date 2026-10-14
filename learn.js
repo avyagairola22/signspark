@@ -9,7 +9,7 @@ import { handSVG } from '../render/hands.js';
 import { playSession } from './player.js';
 import { todayPanel, bindToday } from './today.js';
 import { icon } from '../ui/icons.js';
-import { esc, openSheet } from '../ui/dom.js';
+import { esc, openSheet, reducedMotion } from '../ui/dom.js';
 
 const OFFSETS = [0, 44, 66, 44, 0, -44, -66, -44]; // the path zig-zags
 const KIND_ICON = { learn: 'star', review: 'trophy', sentences: 'chat', culture: 'heart' };
@@ -99,6 +99,29 @@ function lessonCard(lesson) {
   return `<p class="pop-kicker">${KIND_LABEL[kind]}${status === 'done' ? ` · best ${store.state.lessons[lesson.id].best}%` : ''}</p><h3>${esc(lesson.title)}</h3>${preview}${action}`;
 }
 
+/** Height of a bar that stays on screen over the page (0 if it is hidden or scrolls away). */
+function coveredBy(selector) {
+  const el = document.querySelector(selector);
+  if (!el) return 0;
+  const style = getComputedStyle(el);
+  return style.display === 'none' || style.position === 'static' ? 0 : el.getBoundingClientRect().height;
+}
+
+/**
+ * Scroll just enough to show the whole popup clear of the sticky top bar
+ * and the phone tab bar. Worked out by hand because the browser's own
+ * "scroll into view if needed" skips anything already on screen, even
+ * when a bar is covering it.
+ */
+function reveal(pop) {
+  const top = coveredBy('.topbar') + 12;
+  const bottom = window.innerHeight - coveredBy('.tabbar') - 12;
+  const r = pop.getBoundingClientRect();
+  let delta = r.bottom > bottom ? r.bottom - bottom : 0;
+  if (r.top - delta < top) delta = r.top - top; // never push its top under the top bar
+  if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: reducedMotion() ? 'auto' : 'smooth' });
+}
+
 function closePops(root) {
   root.querySelectorAll('.node-pop').forEach((p) => {
     p.parentElement.classList.remove('open');
@@ -134,11 +157,16 @@ export function renderLearn(page, ctx) {
       pop.setAttribute('role', 'group');
       pop.setAttribute('aria-label', LESSON_BY_ID[node.dataset.lesson].title);
       pop.innerHTML = lessonCard(LESSON_BY_ID[node.dataset.lesson]);
+      const pageBottom = document.documentElement.scrollHeight; // measured before the popup makes the page taller
       node.parentElement.appendChild(pop);
+      // Near the end of the path there is no room below the last lessons (on
+      // phones the bottom tab bar also covers the last strip of the page),
+      // so the popup opens upward there and its Start button stays tappable.
+      if (pop.getBoundingClientRect().bottom + window.scrollY + coveredBy('.tabbar') + 12 > pageBottom) pop.classList.add('up');
       node.parentElement.classList.add('open'); // lift this row above the rows below it
       node.setAttribute('aria-expanded', 'true');
       (pop.querySelector('[data-start]') || node).focus({ preventScroll: true });
-      pop.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+      reveal(pop);
       return;
     }
 

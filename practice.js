@@ -11,7 +11,7 @@ import { LETTERS, NUMBERS, WORDS, BY_ID, glossOf } from '../data/signs.js';
 import { UNITS, XP } from '../data/curriculum.js';
 import { playSession } from './player.js';
 import { icon } from '../ui/icons.js';
-import { esc, toast, vibrate, finePointer, setBackgroundInert } from '../ui/dom.js';
+import { esc, toast, vibrate, finePointer, syncLayers } from '../ui/dom.js';
 import { handStage, signPicture, spellStrip, speller, charHand } from '../ui/visuals.js';
 
 const SPEEDS = [
@@ -147,15 +147,16 @@ function overlay(title, onClose) {
     </div>
     <div class="pl-body"><div class="pl-stage tool-stage"></div></div>`;
   document.body.appendChild(root);
-  document.documentElement.classList.add('player-open');
-  setBackgroundInert(true);
+  syncLayers();
   root.focus({ preventScroll: true });
   const onKey = (e) => { if (e.key === 'Escape' && !document.querySelector('.sheet-wrap')) close(); };
+  let closed = false;
   function close() {
+    if (closed) return;
+    closed = true;
     document.removeEventListener('keydown', onKey);
     root.remove();
-    document.documentElement.classList.remove('player-open');
-    setBackgroundInert(false);
+    syncLayers();
     onClose?.();
   }
   document.addEventListener('keydown', onKey);

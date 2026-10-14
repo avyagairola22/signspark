@@ -80,7 +80,7 @@ See **CODE_GUIDE.md** for a walkthrough of how everything works.
 - SVG for every drawing, generated at runtime. No image files.
 - `localStorage` for saving progress on the device. No server, no accounts, no tracking.
 - [esbuild](https://esbuild.github.io/) to bundle the single-file build.
-- Node's built-in `node:test` for unit tests (18 tests).
+- Node's built-in `node:test` for unit tests (19 tests).
 - Fonts: Bricolage Grotesque, Lexend and DM Mono from Google Fonts (SIL Open Font License). The app falls back to system fonts offline.
 
 ## Accessibility

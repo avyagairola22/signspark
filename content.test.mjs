@@ -44,6 +44,16 @@ test('every handshape and every word sign can be drawn', () => {
   for (const w of WORDS) assert.doesNotMatch(bodySVG(w), /NaN|undefined/, `body map for ${w.id}`);
 });
 
+test('no two word signs draw the same picture', () => {
+  // Quizzes show the picture and ask what it means, so every picture must be unique.
+  const seen = new Map();
+  for (const w of WORDS) {
+    const key = JSON.stringify([w.hand, w.hand2, w.base, w.loc, w.move, w.face]);
+    assert.ok(!seen.has(key), `${w.id} looks exactly like ${seen.get(key)}`);
+    seen.set(key, w.id);
+  }
+});
+
 test('every sign is taught by exactly one lesson', () => {
   const taught = LESSONS.flatMap((l) => l.signs || []);
   assert.equal(new Set(taught).size, taught.length, 'a sign is taught twice');

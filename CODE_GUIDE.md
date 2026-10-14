@@ -66,7 +66,7 @@ Everything in this file is a pure function: no screen, no storage. A seeded rand
 
 The player shows one exercise at a time from a queue. Each exercise type is a small renderer that draws itself and tells the player how to check it. When an answer is wrong, the player puts a reshuffled copy at the back of the queue. The lesson ends when the queue is empty, so every learner finishes, and accuracy is measured on first tries.
 
-While a lesson is open, the page behind it is made `inert`, so keyboard focus cannot wander behind the lesson.
+Only the top layer on screen can be clicked: a dialog first, then a lesson or game, then the page itself. `syncLayers()` in `src/ui/dom.js` makes everything under the top layer `inert`. It works this out from what is actually on screen every time something opens or closes, instead of remembering a "before" state, so the page can never stay locked after a lesson is quit.
 
 ## 5. Progress: `src/core/`
 
@@ -77,10 +77,10 @@ While a lesson is open, the page behind it is made `inert`, so keyboard focus ca
 
 ## 6. Tests: `tests/`
 
-`npm test` runs 18 tests with Node's built-in test runner:
+`npm test` runs 19 tests with Node's built-in test runner:
 
 - spaced repetition intervals, streak rules, and dates across month ends and daylight-saving changes
-- every sign can be drawn, and every sign is taught exactly once
+- every sign can be drawn, every sign is taught exactly once, and no two signs share the same picture
 - every lesson builds valid exercises for several different shuffles: 4 unique options that include the answer, spelling words that only use letters already taught, sentences that only use signs already taught
 - word of the day shows every word before repeating
 - backups restore correctly

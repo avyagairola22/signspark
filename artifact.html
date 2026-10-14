@@ -459,6 +459,7 @@ input[type="range"] { accent-color: var(--brand); }
 }
 .node-start {
   position: absolute; bottom: calc(100% + 14px); left: 50%; translate: -50% 0; z-index: 2;
+  pointer-events: none; /* a label only: taps pass through to whatever is under it */
   padding: 7px 12px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink);
   font: 500 0.78rem var(--f-gloss); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
   animation: bob 1.6s ease-in-out infinite;
@@ -475,8 +476,8 @@ input[type="range"] { accent-color: var(--brand); }
   display: grid; gap: 10px; width: min(300px, calc(100vw - 48px)); padding: 16px;
   border: 2px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow);
   text-align: left; animation: rise 0.18s ease-out;
-  scroll-margin: 84px 0 104px;
 }
+.node-pop.up { top: auto; bottom: calc(100% + 16px); }
 .pop-signs { display: flex; flex-wrap: wrap; gap: 6px; }
 .pop-lock { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.9rem; }
 .path-end { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 0.9rem; text-align: center; }
@@ -2138,7 +2139,7 @@ input[type="range"] { accent-color: var(--brand); }
       hand: "B",
       base: "B",
       loc: "neutral",
-      move: "slide",
+      move: { type: "out", dir: 60 },
       moveText: "slide slowly up the back of the other hand",
       palm: "facing down",
       how: "Slowly slide your dominant hand up the back of your other hand, from the fingertips toward the wrist.",
@@ -3325,20 +3326,16 @@ ${space}
     ${actions.length ? `<div class="sheet-actions">${actions.map((a, i) => `<button type="button" class="btn ${a.kind || ""}" data-action="${i}">${esc(a.label)}</button>`).join("")}</div>` : ""}
   </div>`;
     document.body.appendChild(wrap);
-    const behind = [...document.querySelectorAll(".app, .tabbar, .player")].map((el) => [el, el.inert]);
-    behind.forEach(([el]) => {
-      el.inert = true;
-    });
+    syncLayers();
     let closed = false;
     const close = () => {
       if (closed) return;
       closed = true;
-      behind.forEach(([el, was]) => {
-        el.inert = was;
-      });
       wrap.remove();
       document.removeEventListener("keydown", onKey, true);
-      before?.focus?.();
+      syncLayers();
+      if (before?.isConnected && !before.closest("[inert]")) before.focus?.({ preventScroll: true });
+      else document.getElementById("view")?.focus({ preventScroll: true });
       onClose?.();
     };
     const onKey = (e) => {
@@ -3415,10 +3412,19 @@ ${space}
     const s = seconds % 60;
     return m ? `${m}:${String(s).padStart(2, "0")}` : `0:${String(s).padStart(2, "0")}`;
   }
-  function setBackgroundInert(on) {
+  function syncLayers() {
+    const sheets = [...document.querySelectorAll(".sheet-wrap")];
+    const players = [...document.querySelectorAll(".player")];
     document.querySelectorAll(".app, .tabbar").forEach((el) => {
-      el.inert = on;
+      el.inert = sheets.length > 0 || players.length > 0;
     });
+    players.forEach((el) => {
+      el.inert = sheets.length > 0;
+    });
+    sheets.forEach((el, i) => {
+      el.inert = i < sheets.length - 1;
+    });
+    document.documentElement.classList.toggle("player-open", players.length > 0);
   }
   var finePointer = () => window.matchMedia?.("(pointer: fine)").matches;
 
@@ -3804,8 +3810,7 @@ ${space}
     <div class="pl-body"><div class="pl-stage"></div></div>
     <footer class="pl-foot"><div class="pl-foot-in"><div class="pl-msg" aria-live="assertive"></div><div class="pl-actions"></div></div></footer>`;
     document.body.appendChild(root);
-    document.documentElement.classList.add("player-open");
-    setBackgroundInert(true);
+    syncLayers();
     const body = root.querySelector(".pl-body");
     const stage = root.querySelector(".pl-stage");
     const foot = root.querySelector(".pl-foot");
@@ -3921,12 +3926,14 @@ ${space}
       actions.querySelector("button")?.focus({ preventScroll: true });
       confetti();
     }
+    let closed = false;
     function close() {
+      if (closed) return;
+      closed = true;
       handler?.cleanup?.();
       document.removeEventListener("keydown", onKey);
       root.remove();
-      document.documentElement.classList.remove("player-open");
-      setBackgroundInert(false);
+      syncLayers();
       onExit?.();
     }
     function askQuit() {
@@ -4126,6 +4133,20 @@ ${space}
     const action = status === "locked" ? `<p class="pop-lock">${icon("lock", 16)} Finish the lesson before this one to unlock it.</p>` : `<button type="button" class="btn btn-block" data-start="${lesson.id}">${status === "done" ? `Practice again \xB7 +${XP.replay} XP` : `Start \xB7 +${XP.lesson} XP`}</button>`;
     return `<p class="pop-kicker">${KIND_LABEL[kind]}${status === "done" ? ` \xB7 best ${store.state.lessons[lesson.id].best}%` : ""}</p><h3>${esc(lesson.title)}</h3>${preview}${action}`;
   }
+  function coveredBy(selector) {
+    const el = document.querySelector(selector);
+    if (!el) return 0;
+    const style = getComputedStyle(el);
+    return style.display === "none" || style.position === "static" ? 0 : el.getBoundingClientRect().height;
+  }
+  function reveal(pop) {
+    const top = coveredBy(".topbar") + 12;
+    const bottom = window.innerHeight - coveredBy(".tabbar") - 12;
+    const r = pop.getBoundingClientRect();
+    let delta = r.bottom > bottom ? r.bottom - bottom : 0;
+    if (r.top - delta < top) delta = r.top - top;
+    if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: reducedMotion() ? "auto" : "smooth" });
+  }
   function closePops(root) {
     root.querySelectorAll(".node-pop").forEach((p) => {
       p.parentElement.classList.remove("open");
@@ -4157,11 +4178,13 @@ ${space}
         pop.setAttribute("role", "group");
         pop.setAttribute("aria-label", LESSON_BY_ID[node.dataset.lesson].title);
         pop.innerHTML = lessonCard(LESSON_BY_ID[node.dataset.lesson]);
+        const pageBottom = document.documentElement.scrollHeight;
         node.parentElement.appendChild(pop);
+        if (pop.getBoundingClientRect().bottom + window.scrollY + coveredBy(".tabbar") + 12 > pageBottom) pop.classList.add("up");
         node.parentElement.classList.add("open");
         node.setAttribute("aria-expanded", "true");
         (pop.querySelector("[data-start]") || node).focus({ preventScroll: true });
-        pop.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+        reveal(pop);
         return;
       }
       const guide = e.target.closest("[data-guide]");
@@ -4328,17 +4351,18 @@ ${space}
     </div>
     <div class="pl-body"><div class="pl-stage tool-stage"></div></div>`;
     document.body.appendChild(root);
-    document.documentElement.classList.add("player-open");
-    setBackgroundInert(true);
+    syncLayers();
     root.focus({ preventScroll: true });
     const onKey = (e) => {
       if (e.key === "Escape" && !document.querySelector(".sheet-wrap")) close();
     };
+    let closed = false;
     function close() {
+      if (closed) return;
+      closed = true;
       document.removeEventListener("keydown", onKey);
       root.remove();
-      document.documentElement.classList.remove("player-open");
-      setBackgroundInert(false);
+      syncLayers();
       onClose?.();
     }
     document.addEventListener("keydown", onKey);
@@ -4838,7 +4862,12 @@ ${space}
     const grid = page.querySelector(".dict-grid");
     const count = page.querySelector(".dict-count");
     const paint = () => {
-      const list = SIGNS.filter(matches);
+      const q = filter.q.trim().toLowerCase();
+      const rank = (s) => {
+        const name = s.label.toLowerCase();
+        return !q || name === q ? 0 : name.startsWith(q) ? 1 : name.includes(q) ? 2 : 3;
+      };
+      const list = SIGNS.filter(matches).sort((a, b) => rank(a) - rank(b));
       const learned = store.state.learned;
       count.textContent = `${list.length} sign${list.length === 1 ? "" : "s"}`;
       grid.innerHTML = list.length ? list.map((s) => `<button type="button" class="dict-card" data-sign="${s.id}">
@@ -5185,6 +5214,7 @@ ${space}
     view.replaceChildren(page);
     ROUTES[name].render(page, { refresh, go, firstVisit: visits === 1 });
     paintChrome();
+    syncLayers();
     document.title = name === "learn" ? "SignSpark" : `${ROUTES[name].label} \xB7 SignSpark`;
     if (keepScroll) window.scrollTo(0, y);
     else if (visits > 1) window.scrollTo(0, 0);
