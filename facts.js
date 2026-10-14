@@ -1,0 +1,38 @@
+// Deaf culture facts, used for true/false questions and the "Did you know?" card.
+
+export const FACTS = [
+  { id: 'f-language', text: 'ASL is a complete language with its own grammar, not English spelled out on the hands.', answer: true,
+    why: 'ASL has its own word order, grammar and expressions. It is a separate language from English.' },
+  { id: 'f-universal', text: 'Sign language is the same all over the world.', answer: false,
+    why: 'Countries have their own sign languages. British Sign Language is very different from ASL.' },
+  { id: 'f-french', text: 'ASL is historically related to French Sign Language.', answer: true,
+    why: 'Laurent Clerc, a Deaf teacher from France, helped found the first permanent U.S. school for the deaf in 1817.' },
+  { id: 'f-1817', text: 'The first permanent school for the deaf in the United States opened in 1817 in Hartford, Connecticut.', answer: true,
+    why: 'It is now called the American School for the Deaf.' },
+  { id: 'f-capital-d', text: 'Writing "Deaf" with a capital D usually refers to people who are part of Deaf culture and the Deaf community.', answer: true,
+    why: 'Lowercase "deaf" often describes hearing loss itself. Capital-D Deaf describes a cultural identity.' },
+  { id: 'f-face', text: 'In ASL you should keep a blank face so you do not distract from your hands.', answer: false,
+    why: 'Facial expressions are part of ASL grammar. They show questions, feelings and emphasis.' },
+  { id: 'f-attention', text: 'To get a Deaf person\'s attention, it is okay to wave in their line of sight or gently tap their shoulder.', answer: true,
+    why: 'Flicking the lights or stomping on the floor is also common in Deaf spaces.' },
+  { id: 'f-gallaudet', text: 'Gallaudet University in Washington, D.C. is a university for Deaf and hard-of-hearing students.', answer: true,
+    why: 'Its charter was signed by President Abraham Lincoln in 1864.' },
+  { id: 'f-name-signs', text: 'You should make up your own name sign.', answer: false,
+    why: 'Name signs are traditionally given to you by members of the Deaf community.' },
+  { id: 'f-impaired', text: 'Most Deaf people prefer to be called "hearing impaired."', answer: false,
+    why: 'Many people prefer "Deaf" or "hard of hearing." "Hearing impaired" focuses on what is missing.' },
+  { id: 'f-fingerspelling', text: 'Fingerspelling is used for names, places and words that have no common sign.', answer: true,
+    why: 'Most everyday words have signs. Fingerspelling fills the gaps.' },
+  { id: 'f-eyebrows', text: 'Raised eyebrows often mark a yes/no question, and lowered eyebrows often mark a WH-question.', answer: true,
+    why: 'These facial markers do the job that your voice does in spoken English questions.' },
+  { id: 'f-time', text: 'In ASL, time signs like YESTERDAY usually come at the start of a sentence.', answer: true,
+    why: 'Setting the time first tells the viewer when everything else happened.' },
+  { id: 'f-applause', text: 'Deaf audiences often applaud by raising their hands and shaking them.', answer: true,
+    why: 'Visual applause can be seen from across the room.' },
+  { id: 'f-switch-hands', text: 'Switching your dominant hand back and forth while signing is a good habit.', answer: false,
+    why: 'Pick one dominant hand and keep it. Switching makes signing harder to follow.' },
+  { id: 'f-lipread', text: 'Every Deaf person can read lips perfectly.', answer: false,
+    why: 'Lipreading is hard, and many sounds look the same on the lips. Never assume someone can lipread.' },
+];
+
+export const FACT_BY_ID = Object.fromEntries(FACTS.map((f) => [f.id, f]));

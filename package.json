@@ -1,0 +1,15 @@
+{
+  "name": "signspark",
+  "version": "1.0.0",
+  "description": "SignSpark: a free, game-style web app for learning American Sign Language (ASL).",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "dev": "python3 -m http.server 5173"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12"
+  }
+}
